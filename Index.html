@@ -1,0 +1,472 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Trivia Ambiental – Antioquia, Colombia</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #eaf7ea;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    header {
+      background: #2e7d32;
+      color: white;
+      width: 100%;
+      padding: 1rem 0;
+      text-align: center;
+      font-size: 1.8rem;
+      font-weight: bold;
+    }
+    main {
+      max-width: 600px;
+      background: white;
+      margin: 1.5rem;
+      padding: 1.5rem 2rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .hide {
+      display: none;
+    }
+    .question {
+      font-size: 1.3rem;
+      margin-bottom: 1rem;
+    }
+    .options button {
+      display: block;
+      width: 100%;
+      margin: 0.4rem 0;
+      padding: 0.6rem;
+      font-size: 1.1rem;
+      border: 2px solid #2e7d32;
+      background: white;
+      color: #2e7d32;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s, color 0.3s;
+    }
+    .options button:hover {
+      background: #2e7d32;
+      color: white;
+    }
+    .options button.selected {
+      background: #388e3c;
+      color: white;
+      border-color: #388e3c;
+      pointer-events: none;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+    #start-screen input {
+      width: 100%;
+      padding: 0.5rem;
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+      border-radius: 5px;
+      border: 1.5px solid #2e7d32;
+    }
+    #start-screen button {
+      background: #2e7d32;
+      color: white;
+      font-weight: bold;
+      border: none;
+      padding: 0.7rem;
+      font-size: 1.2rem;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #start-screen button:hover {
+      background: #276628;
+    }
+    #score-screen {
+      text-align: center;
+    }
+    #score-screen h2 {
+      color: #2e7d32;
+      margin-bottom: 1rem;
+    }
+    #score-screen ul {
+      text-align: left;
+      max-height: 250px;
+      overflow-y: auto;
+      padding-left: 1rem;
+    }
+    #score-screen ul li {
+      margin-bottom: 0.8rem;
+    }
+    #leaderboard {
+      margin-top: 1.5rem;
+      max-width: 600px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+      padding: 1rem 1.5rem;
+    }
+    #leaderboard h3 {
+      margin-top: 0;
+      color: #2e7d32;
+      text-align: center;
+    }
+    #leaderboard table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 0.7rem;
+    }
+    #leaderboard th, #leaderboard td {
+      border: 1px solid #2e7d32;
+      padding: 0.4rem 0.8rem;
+      text-align: center;
+    }
+    #leaderboard th {
+      background: #a5d6a7;
+    }
+    footer {
+      margin: 1rem 0;
+      color: #555;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <header>🌿 Trivia Ambiental – Antioquia, Colombia</header>
+  <main>
+    <section id="start-screen">
+      <input type="text" id="username" placeholder="Ingresa tu nombre para comenzar" />
+      <button id="start-btn" disabled>Comenzar</button>
+    </section>
+
+    <section id="quiz-screen" class="hide">
+      <div class="question" id="question-text"></div>
+      <div class="options" id="options-container"></div>
+      <button id="next-btn" disabled>Siguiente</button>
+    </section>
+
+    <section id="score-screen" class="hide">
+      <h2>Resultados, <span id="user-name-display"></span>!</h2>
+      <p>Tu puntaje: <strong><span id="score"></span> / 15</strong></p>
+      <ul id="score-details"></ul>
+      <button id="restart-btn">Volver a jugar</button>
+    </section>
+  </main>
+
+  <section id="leaderboard" class="hide">
+    <h3>Tabla de Puntajes</h3>
+    <table>
+      <thead>
+        <tr><th>Jugador</th><th>Puntaje</th></tr>
+      </thead>
+      <tbody id="leaderboard-body"></tbody>
+    </table>
+  </section>
+
+  <footer>
+    &copy; 2025 Trivia Ambiental – Antioquia
+  </footer>
+
+  <script>
+    const questions = [
+      {
+        question: "¿Cuál es el parque natural más grande del Departamento de Antioquia?",
+        options: [
+          "Parque Arví",
+          "Parque Nacional Natural Las Orquídeas",
+          "Reserva Natural Cañón del Río Claro",
+          "Cerro Quitasol"
+        ],
+        answer: 1,
+        description: "El Parque Nacional Natural Las Orquídeas es la reserva natural más extensa en Antioquia, reconocida por su biodiversidad y ecosistemas únicos."
+      },
+      {
+        question: "¿Qué río es considerado el más importante en Antioquia por su extensión y relevancia económica y ecológica?",
+        options: [
+          "Río Cauca",
+          "Río Atrato",
+          "Río Magdalena",
+          "Río Porce"
+        ],
+        answer: 0,
+        description: "El Río Cauca atraviesa Antioquia y es vital para la economía, la agricultura y los ecosistemas de la región."
+      },
+      {
+        question: "¿Qué municipio de Antioquia es reconocido por su producción de energía hidroeléctrica debido a la represa de Ituango?",
+        options: [
+          "Guatapé",
+          "Ituango",
+          "Sabanalarga",
+          "San Carlos"
+        ],
+        answer: 1,
+        description: "El municipio de Ituango alberga la represa hidroeléctrica más grande del país, fundamental para la generación de energía."
+      },
+      {
+        question: "¿Cuál de estos municipios es conocido por su riqueza en biodiversidad y hace parte de la región del Chocó biogeográfico?",
+        options: [
+          "Turbo",
+          "Santa Fe de Antioquia",
+          "Rionegro",
+          "Yarumal"
+        ],
+        answer: 0,
+        description: "Turbo está ubicado en la región del Chocó biogeográfico, con una gran biodiversidad y ecosistemas tropicales."
+      },
+      {
+        question: "¿Qué amenaza ambiental afecta gravemente a varios municipios del Bajo Cauca antioqueño, incluyendo Caucasia y El Bagre?",
+        options: [
+          "La deforestación por expansión urbana",
+          "La minería ilegal",
+          "La erosión costera",
+          "El turismo masivo"
+        ],
+        answer: 1,
+        description: "La minería ilegal en el Bajo Cauca ha provocado daños ambientales significativos, afectando ríos y bosques."
+      },
+      {
+        question: "¿Cuál es la flor emblemática que representa a Antioquia y que también es una especie nativa?",
+        options: [
+          "Orquídea Cattleya trianae",
+          "Rosa de Castilla",
+          "Flor de Loto",
+          "Dalia"
+        ],
+        answer: 0,
+        description: "La Orquídea Cattleya trianae es la flor nacional de Colombia y representa a Antioquia por ser nativa y emblemática."
+      },
+      {
+        question: "¿Qué animal es símbolo de Antioquia y está protegido en sus reservas naturales?",
+        options: [
+          "Cóndor Andino",
+          "Jaguar",
+          "Oso de anteojos",
+          "Tucán"
+        ],
+        answer: 2,
+        description: "El Oso de anteojos es un símbolo de la fauna antioqueña, protegido en parques naturales y reservas."
+      },
+      {
+        question: "¿Cuál es el ecosistema predominante en la zona del Parque Nacional Natural Paramillo?",
+        options: [
+          "Bosque seco tropical",
+          "Páramo y bosque húmedo",
+          "Sabana",
+          "Manglar"
+        ],
+        answer: 1,
+        description: "El Parque Paramillo posee ecosistemas de páramo y bosques húmedos que son vitales para la regulación hídrica."
+      },
+      {
+        question: "¿Qué práctica ambiental es más promovida en Antioquia para conservar sus bosques?",
+        options: [
+          "Reforestación y manejo sostenible",
+          "Caza controlada",
+          "Construcción de carreteras",
+          "Expansión agrícola"
+        ],
+        answer: 0,
+        description: "La reforestación y el manejo sostenible son esenciales para conservar los bosques y la biodiversidad de Antioquia."
+      },
+      {
+        question: "¿Cuál es la importancia del río Porce en Antioquia?",
+        options: [
+          "Es un río para navegación comercial",
+          "Genera energía hidroeléctrica",
+          "No tiene relevancia ambiental",
+          "Es un río seco"
+        ],
+        answer: 1,
+        description: "El río Porce es importante para la generación de energía hidroeléctrica en Antioquia."
+      },
+      {
+        question: "¿Qué recurso natural es especialmente abundante en la región del Nordeste antioqueño?",
+        options: [
+          "Carbón",
+          "Oro",
+          "Agua",
+          "Petróleo"
+        ],
+        answer: 2,
+        description: "La región del Nordeste cuenta con abundantes fuentes de agua, esenciales para la agricultura y la vida."
+      },
+      {
+        question: "¿Cuál es la función principal de los páramos en Antioquia?",
+        options: [
+          "Son zonas turísticas solamente",
+          "Regulan el ciclo hídrico y conservan la biodiversidad",
+          "No tienen importancia ecológica",
+          "Son zonas desérticas"
+        ],
+        answer: 1,
+        description: "Los páramos regulan el agua que abastece ríos y poblaciones, y albergan especies únicas."
+      },
+      {
+        question: "¿Qué proyecto ambiental se destaca en Medellín para mejorar la calidad de vida y el entorno natural?",
+        options: [
+          "Proyecto Jardín Circunvalar",
+          "Construcción de autopistas",
+          "Minas a cielo abierto",
+          "Expansión urbana sin control"
+        ],
+        answer: 0,
+        description: "El Jardín Circunvalar es un proyecto para conectar zonas verdes y proteger la naturaleza en Medellín."
+      },
+      {
+        question: "¿Qué acción está siendo promovida para mitigar el cambio climático en Antioquia?",
+        options: [
+          "Aumento en la quema de combustibles fósiles",
+          "Conservación de bosques y energías renovables",
+          "Incremento de minería ilegal",
+          "Deforestación acelerada"
+        ],
+        answer: 1,
+        description: "La conservación forestal y el uso de energías limpias son claves para enfrentar el cambio climático."
+      },
+      {
+        question: "¿Cuál es la principal causa de contaminación en los ríos de Antioquia?",
+        options: [
+          "Vertimientos industriales y minería ilegal",
+          "Turismo ecológico",
+          "Conservación de áreas protegidas",
+          "Reforestación"
+        ],
+        answer: 0,
+        description: "Los vertimientos sin control y la minería ilegal contaminan los ríos y afectan la vida acuática."
+      }
+    ];
+
+    const startScreen = document.getElementById('start-screen');
+    const quizScreen = document.getElementById('quiz-screen');
+    const scoreScreen = document.getElementById('score-screen');
+    const leaderboardSection = document.getElementById('leaderboard');
+
+    const usernameInput = document.getElementById('username');
+    const startBtn = document.getElementById('start-btn');
+
+    const questionText = document.getElementById('question-text');
+    const optionsContainer = document.getElementById('options-container');
+    const nextBtn = document.getElementById('next-btn');
+
+    const scoreDisplay = document.getElementById('score');
+    const scoreDetails = document.getElementById('score-details');
+    const userNameDisplay = document.getElementById('user-name-display');
+    const restartBtn = document.getElementById('restart-btn');
+
+    const leaderboardBody = document.getElementById('leaderboard-body');
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let userAnswers = [];
+    let username = '';
+
+    usernameInput.addEventListener('input', () => {
+      startBtn.disabled = usernameInput.value.trim() === '';
+    });
+
+    startBtn.addEventListener('click', () => {
+      username = usernameInput.value.trim();
+      if (!username) return;
+      startScreen.classList.add('hide');
+      quizScreen.classList.remove('hide');
+      leaderboardSection.classList.remove('hide');
+      currentQuestionIndex = 0;
+      score = 0;
+      userAnswers = [];
+      showQuestion();
+      renderLeaderboard();
+    });
+
+    function showQuestion() {
+      nextBtn.disabled = true;
+      const q = questions[currentQuestionIndex];
+      questionText.textContent = `Pregunta ${currentQuestionIndex + 1}: ${q.question}`;
+      optionsContainer.innerHTML = '';
+      q.options.forEach((opt, index) => {
+        const btn = document.createElement('button');
+        btn.textContent = opt;
+        btn.onclick = () => selectOption(index, btn);
+        optionsContainer.appendChild(btn);
+      });
+    }
+
+    function selectOption(selectedIndex, button) {
+      const q = questions[currentQuestionIndex];
+      // Disable all buttons
+      [...optionsContainer.children].forEach(b => {
+        b.disabled = true;
+        b.classList.remove('selected');
+      });
+      // Mark selected
+      button.classList.add('selected');
+      nextBtn.disabled = false;
+      userAnswers[currentQuestionIndex] = selectedIndex;
+      if (selectedIndex === q.answer) score++;
+    }
+
+    nextBtn.addEventListener('click', () => {
+      currentQuestionIndex++;
+      if (currentQuestionIndex < questions.length) {
+        showQuestion();
+      } else {
+        showScore();
+      }
+    });
+
+    restartBtn.addEventListener('click', () => {
+      scoreScreen.classList.add('hide');
+      startScreen.classList.remove('hide');
+      usernameInput.value = '';
+      startBtn.disabled = true;
+    });
+
+    function showScore() {
+      quizScreen.classList.add('hide');
+      scoreScreen.classList.remove('hide');
+      userNameDisplay.textContent = username;
+      scoreDisplay.textContent = score;
+      scoreDetails.innerHTML = '';
+      questions.forEach((q, i) => {
+        const li = document.createElement('li');
+        const userAnswerIndex = userAnswers[i];
+        const correct = userAnswerIndex === q.answer;
+        li.innerHTML = `<strong>Pregunta ${i + 1}:</strong> ${q.description} <br>
+                        <em>Tu respuesta:</em> ${q.options[userAnswerIndex] || 'No respondiste'} - 
+                        <strong style="color:${correct ? 'green' : 'red'}">${correct ? 'Correcto' : 'Incorrecto'}</strong>`;
+        scoreDetails.appendChild(li);
+      });
+      saveScore();
+      renderLeaderboard();
+    }
+
+    function saveScore() {
+      const storedScores = JSON.parse(localStorage.getItem('triviaScores')) || [];
+      storedScores.push({ user: username, score });
+      // Ordenar por puntaje descendente
+      storedScores.sort((a,b) => b.score - a.score);
+      // Guardar máximo 10
+      localStorage.setItem('triviaScores', JSON.stringify(storedScores.slice(0,10)));
+    }
+
+    function renderLeaderboard() {
+      const storedScores = JSON.parse(localStorage.getItem('triviaScores')) || [];
+      leaderboardBody.innerHTML = '';
+      storedScores.forEach(entry => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${entry.user}</td><td>${entry.score}</td>`;
+        leaderboardBody.appendChild(tr);
+      });
+    }
+  </script>
+</body>
+</html>
